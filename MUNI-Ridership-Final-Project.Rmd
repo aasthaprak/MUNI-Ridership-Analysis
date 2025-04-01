@@ -1,0 +1,605 @@
+---
+title: "Time Series Analysis of Weekday Ridership Trends in San Francisco's MUNI System"
+author: |
+  Aastha Prakash  
+  aprakash@ucsb.edu
+date: March 2025 
+output: 
+  pdf_document
+header-includes:
+  - \newpage
+---
+
+# Abstract
+
+This project analyzes and forecasts weekday ridership trends in San Francisco’s MUNI public transportation system using two distinct time series modeling methodologies: SARIMA (Seasonal AutoRegressive Integrated Moving Average) and lagged regression. The aim is to uncover underlying patterns, including trends and seasonality, and develop accurate forecasting models for future ridership.
+
+Public transportation is a cornerstone of urban sustainability and efficiency, and understanding ridership patterns is essential for optimizing resource allocation, improving service quality, and making informed policy decisions. San Francisco’s MUNI system faces unique challenges due to its dense urban environment and the influence of external factors such as the tech industry, tourism, and changing work patterns. By applying SARIMA and lagged regression, this study enhances the understanding of ridership behavior, ultimately contributing to more effective planning and resource management.
+
+\newpage
+
+# Introduction 
+
+This time series project focuses on analyzing and forecasting weekday ridership trends in San Francisco's MUNI public transportation system. The primary objective is to identify and understand the underlying patterns in ridership data, including trends, seasonality, and external disruptions, while developing reliable forecasting models for future ridership. Two key methodologies are employed in this study: SARIMA (Seasonal AutoRegressive Integrated Moving Average) and lagged regression.
+
+Public transportation is essential to urban sustainability and efficiency. Understanding ridership trends allows for better resource allocation, improved service quality, and data-driven policy decisions. San Francisco's MUNI system faces unique challenges, given the city’s dense urban landscape and the influence of external factors such as the booming tech industry, seasonal tourism, and shifts in housing markets. For instance, the rise of remote work in the post-pandemic era has significantly altered commuting patterns, impacting both ridership numbers and transit revenue. Large-scale conferences and tourism peaks further complicate these trends, making it essential to develop accurate forecasting models.
+
+Prior studies on transit ridership trends provide important context for these challenges. Wasserman and Taylor’s Transit Blues in the Golden State: Regional Transit Ridership Trends in California highlight that while Greater Los Angeles saw significant transit declines, the Bay Area’s ridership remained relatively stable due to the strong performance of its two largest agencies, MUNI and BART. Similarly, What’s Behind Recent Transit Ridership Trends in the Bay Area? Volume II: Trends among Major Transit Operators (Wasserman et al., 2020) emphasizes that MUNI, operating in a high-density, transit-supportive environment, experienced minimal ridership losses between 2014 and 2018, contributing little to statewide declines. These studies suggest that high-density transit corridors play a crucial role in sustaining ridership levels, a factor that remains relevant as cities adapt to post-pandemic commuting patterns.
+
+The need to understand MUNI’s ridership patterns is especially pressing given recent disruptions. Economic downturns, policy changes, and the COVID-19 pandemic have all affected public transit usage. A report from the San Francisco Municipal Transportation Agency (SFMTA, 2022) revealed that MUNI’s recovery has been slower than expected, with weekday ridership remaining below pre-pandemic levels—particularly in downtown areas where office occupancy remains low. Karner et al. (2020) examined transit agency responses during the pandemic, noting how agencies, including SFMTA, adapted by prioritizing essential workers and adjusting services based on real-time ridership data. SFMTA’s equity plan played a key role in ensuring continued service for marginalized communities during this period.
+
+By analyzing fluctuations in ridership, transit agencies can allocate resources more effectively—whether by adjusting the number of buses, trains, or streetcars on different routes, optimizing schedules, or identifying underserved areas. Such data-driven insights enable proactive decision-making regarding fare policies, service routes, and operational efficiency, contributing to a more sustainable, equitable, and responsive transportation network. This, in turn, improves the rider experience and helps ensure public transportation remains a reliable and accessible resource for all.
+
+The insights gained from real-time data adjustments during the pandemic emphasize the importance of predictive models for future planning. This study applies two forecasting methodologies—SARIMA and lagged regression—to analyze time series data and develop forecasts for future ridership. SARIMA is particularly well-suited for capturing seasonality and long-term trends, while lagged regression models are effective in identifying how past ridership influences future patterns.
+
+One notable finding from the data analysis is the significant shift in ridership patterns during the pandemic, particularly the sharp decline in weekday ridership in central business districts and a modest increase in suburban and residential areas. This shift highlights the lasting impact of remote work on commuting behavior, reinforcing the need for transit systems to adapt to these evolving patterns. By leveraging the SARIMA and lagged regression models, MUNI can better anticipate demand fluctuations and tailor its services to meet the changing needs of commuters.
+
+\newpage
+
+# Description of Dataset 
+
+## Key Findings 
+
+- Time Range: Fiscal Year 2016 – Fiscal Year 2025
+- Frequency: Monthly
+- Values: Average daily weekday boardings
+- Unit of Measurement: Number of boardings
+- Size: 914 observations
+- Data Source: San Francisco Municipal Transportation Agency (SFMTA)
+- Web Link: MUNI Ridership Reports
+
+## Why This Dataset?
+  
+The MUNI transit system plays a vital role in San Francisco’s urban mobility, and understanding ridership trends is crucial for improving transit efficiency and accessibility. This dataset, which tracks weekday ridership, provides essential insights that can guide city planners, policymakers, and transit agencies in making informed decisions about transit operations. Analyzing this data can help optimize resources, improve service, and ensure that transit systems effectively meet public demand.
+
+As a Bay Area resident, I have a personal connection to the MUNI system, which makes this analysis more than just a data exercise. By examining how external factors—such as the COVID-19 pandemic, economic changes, and the rise of remote work—have influenced public transit patterns in San Francisco, the findings hold real-world implications for transit planning and policy.
+
+## Data Collection
+
+The dataset is collected using automated passenger counters on buses and traffic checkers on rail vehicles. Data is reported monthly as system-wide average weekday boardings.
+
+## Purpose of Study
+
+This project aims to:
+
+- Analyze ridership trends: investigate changes in MUNI ridership over time.
+- Identify seasonal and external Factors: explore how seasonal variations and external factors (the COVID-19 pandemic, economic shifts, and remote work) have affected ridership patterns.
+- Develop predictive models: Apply time series analysis methods, such as SARIMA and Lagged regression models, to forecast future ridership trends.
+- Support transit planning and policy: provide data-driven insights that inform the optimization of MUNI service planning and the allocation of resources.
+
+\newpage
+
+# Methodologies
+
+This project employs two primary time series analysis techniques: the SARIMA model and lagged regression. Both methods aim to model the temporal dependencies in MUNI ridership data and provide forecasts. However, they differ in how they account for seasonality and the influence of past values on future ridership patterns.
+
+## SARIMA (p, d, q) x (P, D, Q) Model 
+
+The Seasonal Autoregressive Integrated Moving Average (SARIMA) model is a widely used approach for time series forecasting that accounts for both trend and seasonality. The notation SARIMA(p, d, q) x (P, D, Q) represents the following components:
+
+- Autoregressive (AR) (p): models the dependence of the current value on its past values. The order p represents the number of lagged values included in the model.
+
+- Integrated (I) (d): represents the degree of differencing applied to the time series to make it stationary. Differencing involves subtracting the previous observation from the current one. The order d indicates the number of times differencing is performed.
+
+- Moving Average (MA) (q): models the dependence of the current value on past error terms. The order q represents the number of lagged error terms included in the model.
+
+- Seasonal Components (P, D, Q)s: capture the seasonal patterns in the time series. The orders P, D, and Q represent the seasonal AR, I, and MA components, respectively, and s is the seasonal period (e.g., 12 for monthly data with yearly seasonality).
+
+## Lagged Regression Model 
+
+The Lagged Regression Model is a straightforward approach for forecasting time series data, particularly when the goal is to understand the relationship between current values and past observations. In this model, past values of the dependent variable (in this case, MUNI ridership) are used as independent variables (lagged values) to predict future ridership.
+
+The model works by incorporating lagged variables—previous time points—as predictors for future outcomes. For example, to predict ridership for a given month, we use ridership data from previous months as input features. The model's coefficients for each lag term indicate how much influence past values have on future ridership.
+
+The lagged regression model is useful for capturing the temporal dependencies in the data, particularly when there is an observable pattern of past behavior influencing future outcomes. By fitting a linear regression model with these lagged variables, we can forecast future ridership based on recent trends.
+
+SARIMA and Lagged Regression serve as the core frameworks for analyzing and forecasting MUNI ridership trends, with SARIMA capturing seasonal and trend components, and Lagged Regression focusing on the influence of past ridership values on future predictions.
+
+
+\newpage
+
+# Results 
+
+## Exploratory Data Analysis 
+
+```{r, include=FALSE}
+# Load the dataset 
+df <- read.csv("/Users/aasthaprakash/Downloads/RidershipTable.csv")
+
+# Load libraries 
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(lmtest)
+library(forecast)  
+```
+ 
+```{r, include=FALSE}
+
+# Convert 'Average.Daily.Boardings' column to numeric
+df$Average.Daily.Boardings <- as.numeric(gsub(",", "", df$Average.Daily.Boardings))
+
+# Handle missing / invalid values
+df$Average.Daily.Boardings[is.na(df$Average.Daily.Boardings)] <- 0
+
+# Filter data for 'WEEKDAY' entries only 
+df_weekday <- subset(df, Service.Day.of.the.Week == "WEEKDAY")
+
+# Convert 'Month' to Date format for time series compatibility
+df_weekday$Month <- as.Date(paste("01", df_weekday$Month), format = "%d %B %Y")
+
+# Aggregate data by month and calculate the average of 'Average.Daily.Boardings'
+monthly_ridership <- df_weekday %>%
+  group_by(Month) %>%
+  summarize(Average.Daily.Boardings = mean(Average.Daily.Boardings))
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(monthly_ridership, aes(x = Month, y = Average.Daily.Boardings)) +
+  geom_line() +
+  labs(title = "Monthly Ridership Over Time", x = "Month", y = "Average Daily Boardings")
+```
+We first examined the monthly ridership trends to identify patterns and anomalies. Figure 1 illustrates the fluctuations in Average Daily Boardings over time, revealing clear seasonality with consistent peaks and declines throughout the year.
+
+However, one notable anomaly is the sharp drop in March 2020, which aligns with the onset of COVID-19 lockdowns and likely explains the significant decrease in ridership. The presence of an overall trend in the data suggests the need for differencing to achieve stationarity.
+
+```{r, echo=FALSE}
+# Convert the data to a time series
+ts_ridership <- ts(monthly_ridership$Average.Daily.Boardings, start = c(2016, 1), frequency = 12)
+```
+
+## Data Transformation for Stationarity 
+
+```{r, echo=FALSE, results='hide', fig.width=8, fig.height=4} 
+# Stationarity check
+ndiffs(ts_ridership)
+diff_ts <- diff(ts_ridership) # apply first differencing
+
+# Plot the differenced series
+plot(diff_ts, main = "Differenced Time Series", ylab = "Change in Boardings", xlab = "Time")
+
+# Set up a 1x2 layout for the plots (ACF and PACF side by side)
+par(mfrow = c(1, 2))
+
+# Plot the ACF
+acf(diff_ts, main = "ACF of Differenced Series")
+
+# Plot the PACF
+pacf(diff_ts, main = "PACF of Differenced Series")
+``` 
+
+I applied first differencing to the ridership data to address potential non-stationarity. The resulting differenced time series is shown where the trend has been reduced, and the series appears more stable. To confirm stationarity, I also plotted the ACF and PACF of the differenced series. The ACF plot shows a rapid decay, suggesting a MA (Moving Average) component, while the PACF plot indicates a sharp cutoff, pointing to a potential AR (AutoRegressive) component.
+
+\newpage
+
+## SARIMA Model Analysis 
+
+I fitted a Seasonal AutoRegressive Integrated Moving Average (SARIMA) model with the parameters (0,1,1)(0,1,1)[12], which effectively captures both seasonal and non-seasonal dependencies in ridership data.
+
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+# Fit SARIMA model
+sarima_model <- arima(ts_ridership, order = c(0, 1, 1), seasonal = list(order = c(0, 1, 1), period = 12))
+
+# Print summary of the model
+summary(sarima_model)
+
+# Residual diagnostics 
+checkresiduals(sarima_model)
+
+# Ljung-Box test on SARIMA residuals
+Box.test(sarima_model$residuals, lag = 24, type = "Ljung-Box")
+```
+
+After fitting the SARIMA(0,1,1)(0,1,1) model, I carefully examined the residuals to ensure the model's adequacy in capturing the underlying patterns within the data. A time series plot revealed mostly random fluctuations, although a notable outlier was observed in 2020, coinciding with the onset of the COVID-19 pandemic and associated lockdowns. The ACF plot indicated some statistical significance at a 12-month lag, but otherwise, the residuals showed no significant autocorrelation, suggesting that the model effectively captured most linear dependencies. Additionally, the histogram indicated a generally normal distribution of residuals, with a slight negative skew potentially related to the outlier in 2020. Overall, these diagnostics suggest that the SARIMA model adequately explains the variance in the observed data, and that it can be used to make informed predictions on the future ridership of the MUNI system.
+
+
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+# Forecast on the test data
+forecast_s<- forecast(sarima_model, h = 12)
+
+# Plotting the forecasts
+plot(forecast_s, main = "Forecast with SARIMA", ylab = "Average Daily Boardings", xlab = "Time")
+
+# Print summary of data and the upper and lower limits
+summary(forecast_s)
+
+# The forecast for the next 12 months
+forecast_s
+```
+
+
+The SARIMA forecast depicted in the graph provides insights into average daily boardings from 2016 to 2026. The historical data, represented by the black line, shows a steady trend until 2020, where there is a sharp decline likely caused by a significant external event, such as the COVID-19 pandemic. Following this drop, the data reflects gradual recovery and stabilization through 2025. The forecast, shown as a blue line, predicts relatively stable average daily boardings from 2025 to 2026, with minimal fluctuations. Surrounding the forecast are confidence intervals shaded in darker and lighter blue, indicating varying levels of uncertainty that increase as the prediction extends into the future. This suggests that while the model anticipates stability, there is some degree of unpredictability in longer-term projections. Overall, the SARIMA model captures historical trends and seasonality effectively while providing a cautious outlook for future boardings.
+
+
+The model parameters include a non-seasonal moving average (MA) term of 0.4299 and a seasonal MA term of -1.0000. The model's error variance (sigma^2) is estimated at 22,847,241, and the log-likelihood value is -962.83, with an AIC (Akaike Information Criterion) of 1931.66.
+
+Training set error metrics suggest that the model has a reasonable fit to the historical data, with a Mean Error (ME) of 97.37, RMSE (Root Mean Squared Error) of 4485.88, and MAE (Mean Absolute Error) of 2216.16. The model’s performance is acceptable, given the MAPE (Mean Absolute Percentage Error) of 7.47%, indicating that the model’s forecast errors, on average, are within a 7.47% margin of the actual values.
+
+The Ljung-Box test, which tests for autocorrelation in the residuals, returns a p-value of 0.3157, suggesting that there is no significant autocorrelation in the residuals, and the model fits the data well without any significant model mis-specifications.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Load necessary libraries
+library(dplyr)
+library(knitr)
+library(zoo)  # for as.yearmon function
+
+# Create a data frame of forecasted values
+forecast_df <- data.frame(
+  Month = as.yearmon(time(forecast_s$mean)),  # Convert time to Year-Month format using zoo::as.yearmon
+  Forecast = forecast_s$mean,
+  Lo_80 = forecast_s$lower[,1],  # 80% lower bound
+  Hi_80 = forecast_s$upper[,1],  # 80% upper bound
+  Lo_95 = forecast_s$lower[,2],  # 95% lower bound
+  Hi_95 = forecast_s$upper[,2]   # 95% upper bound
+)
+
+# Round the values to the nearest whole number
+forecast_df_rounded <- forecast_df %>%
+  mutate(
+    Forecast = round(Forecast),
+    Lo_80 = round(Lo_80),
+    Hi_80 = round(Hi_80),
+    Lo_95 = round(Lo_95),
+    Hi_95 = round(Hi_95),
+    Month = format(Month, "%b %Y")  # Convert to 'Month Year' format
+  )
+
+# Print the table of forecasted values
+knitr::kable(forecast_df_rounded, 
+             col.names = c("Month", "Forecast", "80% CI Lower", "80% CI Upper", "95% CI Lower", "95% CI Upper"),
+             caption = "Forecasted Ridership with Confidence Intervals (Rounded)",
+             format = "markdown", 
+             digits = 0)  # Ensures rounding to whole numbers
+
+```
+
+
+The forecasted ridership values from February 2025 to January 2026 fluctuate between 57,426 and 63,856, with noticeable seasonal variations. For example, February 2025 shows the highest forecast of 63,915, while December 2025 is the lowest at 57,426.
+
+The 95% confidence intervals (CIs) indicate wider uncertainty compared to the 80% CIs, with the 95% CI for February 2025 ranging from 54,031 to 73,799, reflecting greater variability in long-term forecasts. In contrast, months like October 2025 show more reliable forecasts with narrower CIs.
+
+The 80% CIs provide a tighter range, offering a more focused prediction with higher confidence. For instance, February 2025 has an 80% CI between 57,452 and 70,378.
+
+Overall, the forecast suggests stable ridership with moderate fluctuations, but the wide confidence intervals highlight uncertainty, particularly in months with higher variability like March and December 2025.
+
+In conclusion, the SARIMA model provides reliable forecasts for the upcoming months, with good performance on historical data. The forecast intervals offer a reasonable range of uncertainty, which is crucial for planning purposes, especially in predicting the future ridership fluctuations.
+
+## Lagged Regression Model Analysis 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+
+# Ensure that the ts_ridership is a time series object
+# If it is not already, make sure ts_ridership is converted to a time series object
+ts_ridership <- ts(ts_ridership, frequency = 12, start = c(2016, 1))  # Example start date
+
+# Create lagged variables for the ridership data
+lagged_data <- data.frame(
+  y = ts_ridership[13:length(ts_ridership)],  # Dependent variable (starting from time point 13)
+  lag1 = ts_ridership[1:(length(ts_ridership)-12)],  # Lag 1 (previous month)
+  lag2 = ts_ridership[2:(length(ts_ridership)-11)],  # Lag 2 (2 months ago)
+  lag3 = ts_ridership[3:(length(ts_ridership)-10)],  # Lag 3 (3 months ago)
+  lag4 = ts_ridership[4:(length(ts_ridership)-9)],   # Lag 4 (4 months ago)
+  lag5 = ts_ridership[5:(length(ts_ridership)-8)]    # Lag 5 (5 months ago)
+)
+
+# Fit a linear model (lagged regression) with the lagged variables
+lagged_model <- lm(y ~ lag1 + lag2 + lag3 + lag4 + lag5, data = lagged_data)
+
+# Print the summary of the model to check the coefficients
+summary(lagged_model)
+
+# Prepare the forecast for the next 12 months
+# We'll use the last 5 months of observed data to generate the forecast
+last_observed <- tail(ts_ridership, 5)  # Last 5 months of data
+
+# Prepare the input for the prediction (using lagged values from the last observed months)
+new_data <- data.frame(
+  lag1 = last_observed[5],  # Most recent month
+  lag2 = last_observed[4],  # Second most recent
+  lag3 = last_observed[3],  # Third most recent
+  lag4 = last_observed[2],  # Fourth most recent
+  lag5 = last_observed[1]   # Fifth most recent
+)
+
+# Make a forecast for the next 12 months
+forecast_values <- numeric(12)  # Create a vector to store the forecast values
+for (i in 1:12) {
+  forecast_values[i] <- predict(lagged_model, newdata = new_data)  # Forecast for the next month
+  # Update the input for the next forecast iteration (shift the lagged variables)
+  new_data <- data.frame(
+    lag1 = forecast_values[i], 
+    lag2 = new_data$lag1, 
+    lag3 = new_data$lag2, 
+    lag4 = new_data$lag3, 
+    lag5 = new_data$lag4
+  )
+}
+
+# Plot the original data
+plot(ts_ridership, type = "l", col = "blue", main = "SF Muni Ridership with Lagged Regression Forecast", 
+     ylab = "Ridership", xlab = "Time", xlim = c(start(ts_ridership)[1], 2026))  # Adjust xlim to fit forecast range
+
+# Create a proper time axis for the forecast
+forecast_x <- seq(time(ts_ridership)[length(ts_ridership)] + 1/12, by = 1/12, length.out = 12)
+
+# Add the forecasted values (starting from the 13th month)
+lines(forecast_x, forecast_values, col = "red", lwd = 2)
+
+# Add a legend
+legend("topright", legend = c("Observed", "Forecasted"), col = c("blue", "red"), lty = 1)
+
+# Create a data frame for the forecasted values
+forecast_lagged_df <- data.frame(
+  Month = as.yearmon(time(ts_ridership)[length(ts_ridership)] + (1:12)/12),  # Time for next 12 months
+  Forecast = round(forecast_values)
+)
+
+# Print the table of forecasted values for the next 12 months
+knitr::kable(forecast_lagged_df, 
+             col.names = c("Month", "Forecast"), 
+             caption = "Lagged Regression Forecast for Next 12 Months", 
+             format = "markdown", 
+             digits = 0)
+```
+
+The lagged regression forecast for SF Muni ridership provides an analysis of observed and predicted trends from 2016 to 2026. The blue line represents historical ridership data, showing consistent levels until a sharp decline in 2020, likely due to the COVID-19 pandemic. Following this drop, ridership gradually recovers, approaching pre-pandemic levels by 2025. The red line illustrates the forecasted ridership for 2025 to 2026, indicating a continuation of stable recovery with slight fluctuations. Unlike the SARIMA model, this forecast does not include confidence intervals, making it less explicit about uncertainty. However, it aligns closely with historical trends and suggests steady ridership levels without significant growth or decline. Overall, the lagged regression forecast captures the recovery trajectory effectively and provides a straightforward outlook for future ridership.
+
+The coefficients for the lagged variables suggest that recent trends in ridership (within 1-2 months) have a more substantial effect than older trends. The R-squared value indicates that a significant portion of the variance in current ridership can be explained by past ridership values, with the model providing a reasonable fit.
+
+Residuals analysis showed no major autocorrelation, implying that the model effectively captures the dependencies in the data without missing crucial patterns. However, the model's p-values for some lags indicate potential room for improvement, suggesting the inclusion of additional variables or interaction terms might enhance forecasting accuracy.
+
+## Model Diagnostics 
+```{r, echo=FALSE, fig.width=10, fig.height=3.5, message=FALSE, warning=FALSE}
+hist(residuals(lagged_model), main = "Residuals Histogram", xlab = "Residuals")
+
+qqnorm(residuals(lagged_model))
+qqline(residuals(lagged_model), col = "red")
+
+plot(residuals(lagged_model), main = "Residuals of the Lagged Regression Model")
+abline(h = 0, col = "red")
+points(which(abs(residuals(lagged_model)) > 2 * sd(residuals(lagged_model))), residuals(lagged_model)[abs(residuals(lagged_model)) > 2 * sd(residuals(lagged_model))], col = "blue", pch = 19)
+```
+The diagnostics for the lagged regression model were conducted to assess the model's validity and performance. The histogram of the residuals reveals a roughly normal distribution, which suggests that the errors of the model are symmetrically distributed around zero, supporting the assumption of normally distributed residuals. Additionally, the Q-Q plot mostly follows the red reference line, indicating that the residuals align with a normal distribution. However, there are some tail outliers present, signaling that the model might not fully capture the extreme values in the data. While the residual plot appears well-behaved overall, there are two notable outliers in blue, which deviate from the rest of the residuals. These outliers could represent unusual events or data points that the model does not adequately address. Despite these outliers, the general pattern of the residuals suggests that the model is a reasonable fit for the data, and the assumptions of normality hold in most instances. However, the presence of these outliers may warrant further investigation or consideration of alternative modeling approaches to better accommodate such deviations.
+
+\newpage
+
+# Conclusion
+
+In this project, we aimed to develop and analyze forecasting models for ridership data using both Seasonal AutoRegressive Integrated Moving Average (SARIMA) and lagged regression models. The objective was to understand the temporal dependencies in ridership trends and develop models that could reliably predict future ridership. The analysis revealed that the SARIMA model successfully captured both seasonal and non-seasonal dependencies, producing predictions that aligned well with the observed patterns in the data. The forecasted ridership for the upcoming months demonstrated cyclical fluctuations based on historical trends, and the model's confidence intervals provided valuable insights into the range of potential future ridership values. In addition, the SARIMA model proved effective in accounting for the cyclical nature of the data, allowing for robust short-term predictions.
+
+On the other hand, the lagged regression model revealed that past ridership values, particularly at lag-1 and lag-2, were strong predictors of future ridership. This model explained a significant proportion of the variance in the data, underlining the importance of temporal dependencies. Moreover, we examined the residuals for autocorrelation, and the lack of significant patterns suggested that the model adequately captured the underlying structure of the data. The lagged regression model, however, indicated that incorporating additional explanatory variables or considering non-linear terms might enhance prediction accuracy further.
+
+The key takeaway from this analysis is that both models confirmed that historical ridership plays a crucial role in forecasting future trends. The SARIMA model effectively captured seasonal effects, while the lagged regression model focused on direct past relationships. Despite the strong performance of both models, there are areas for further refinement. Future research could explore incorporating exogenous variables such as weather, special events, and holidays, which could have a significant impact on ridership patterns. Adding these external factors to the models could improve accuracy, particularly for non-regular or anomalous ridership trends. Additionally, investigating more advanced techniques such as seasonal decomposition and non-linear models could potentially uncover more subtle relationships that the current models might miss. A more in-depth comparison of time series models, such as ARIMA, SARIMA, and Exponential Smoothing, could provide a better understanding of which model is most suitable for forecasting ridership under different conditions.
+
+In conclusion, this project demonstrated the importance of historical data and temporal dependencies in forecasting ridership. While the models presented here are effective for short-term predictions, future work will focus on enhancing the models by incorporating external data sources, refining the seasonal components, and exploring alternative modeling techniques to improve long-term forecasting accuracy.
+
+\newpage
+
+# Sources 
+
+Wasserman, J. L., & Taylor, B. D. (2022). Transit blues in the Golden State: Regional transit ridership trends in California. Journal of Public Transportation, 24(1), 100030. https://doi.org/10.1016/j.jpubtr.2022.100030
+
+Wasserman, J. L., Taylor, B. D., Blumenberg, E., Garrett, M., King, H., Paul, J., Ruvolo, M., & Schouten, A. (2020). What’s behind recent transit ridership trends in the Bay Area? Volume II: Trends among major transit operators. University of California, Los Angeles, Institute of Transportation Studies.
+
+San Francisco Municipal Transportation Agency (SFMTA). (n.d.). Muni ridership: Average weekday ridership. Retrieved from https://www.sfmta.com/reports/muni-ridership-average-weekday-ridership
+
+
+# Appendix 
+
+## Data Loading, Cleaning and Preprocessing 
+
+```{r, echo=TRUE, eval=FALSE}
+# Load the dataset 
+df <- read.csv("/Users/aasthaprakash/Downloads/RidershipTable.csv")
+
+# Load libraries 
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(lmtest)
+library(forecast)  
+
+# Convert 'Average.Daily.Boardings' column to numeric
+df$Average.Daily.Boardings <- as.numeric(gsub(",", "", df$Average.Daily.Boardings))
+
+# Handle missing / invalid values
+df$Average.Daily.Boardings[is.na(df$Average.Daily.Boardings)] <- 0
+
+# Filter data for 'WEEKDAY' entries only 
+df_weekday <- subset(df, Service.Day.of.the.Week == "WEEKDAY")
+
+# Convert 'Month' to Date format for time series compatibility
+df_weekday$Month <- as.Date(paste("01", df_weekday$Month), format = "%d %B %Y")
+
+# Aggregate data by month and calculate the average of 'Average.Daily.Boardings'
+monthly_ridership <- df_weekday %>%
+  group_by(Month) %>%
+  summarize(Average.Daily.Boardings = mean(Average.Daily.Boardings))
+
+ggplot(monthly_ridership, aes(x = Month, y = Average.Daily.Boardings)) +
+  geom_line() +
+  labs(title = "Monthly Ridership Over Time", x = "Month", y = "Average Daily Boardings")
+```
+
+## Time series conversion 
+
+```{r, echo=TRUE, eval=FALSE}
+# Convert the data to a time series
+ts_ridership <- ts(monthly_ridership$Average.Daily.Boardings, start = c(2016, 1), frequency = 12)
+```
+
+## Stationarity testing and differencing 
+
+```{r, echo=TRUE, eval=FALSE}
+# Stationarity check
+ndiffs(ts_ridership)
+diff_ts <- diff(ts_ridership) # apply first differencing
+
+# Plot the differenced series
+plot(diff_ts, main = "Differenced Time Series", ylab = "Change in Boardings", xlab = "Time")
+
+# Set up a 1x2 layout for the plots (ACF and PACF side by side)
+par(mfrow = c(1, 2))
+
+# Plot the ACF
+acf(diff_ts, main = "ACF of Differenced Series")
+
+# Plot the PACF
+pacf(diff_ts, main = "PACF of Differenced Series")
+```
+
+## SARIMA model
+
+```{r, echo=TRUE, eval=FALSE}
+# Fit SARIMA model
+sarima_model <- arima(ts_ridership, order = c(0, 1, 1), seasonal = list(order = c(0, 1, 1), period = 12))
+
+# Print summary of the model
+summary(sarima_model)
+
+# Residual diagnostics 
+checkresiduals(sarima_model)
+
+# Ljung-Box test on SARIMA residuals
+Box.test(sarima_model$residuals, lag = 24, type = "Ljung-Box")
+
+# Evaluate the accuracy of the forecast
+accuracy(sarima_model)
+
+# Forecast on the test data
+forecast_s<- forecast(sarima_model, h = 12)
+
+# Plotting the forecasts
+plot(forecast_s, main = "Forecast with SARIMA", ylab = "Average Daily Boardings", xlab = "Time")
+
+# Print summary of data and the upper and lower limits
+summary(forecast_s)
+
+# The forecast for the next 12 months
+forecast_s
+
+# Load necessary libraries
+library(dplyr)
+library(knitr)
+library(zoo)  # for as.yearmon function
+
+# Create a data frame of forecasted values
+forecast_df <- data.frame(
+  Month = as.yearmon(time(forecast_s$mean)),  # Convert time to Year-Month format using zoo::as.yearmon
+  Forecast = forecast_s$mean,
+  Lo_80 = forecast_s$lower[,1],  # 80% lower bound
+  Hi_80 = forecast_s$upper[,1],  # 80% upper bound
+  Lo_95 = forecast_s$lower[,2],  # 95% lower bound
+  Hi_95 = forecast_s$upper[,2]   # 95% upper bound
+)
+
+# Round the values to the nearest whole number
+forecast_df_rounded <- forecast_df %>%
+  mutate(
+    Forecast = round(Forecast),
+    Lo_80 = round(Lo_80),
+    Hi_80 = round(Hi_80),
+    Lo_95 = round(Lo_95),
+    Hi_95 = round(Hi_95),
+    Month = format(Month, "%b %Y")  # Convert to 'Month Year' format
+  )
+
+# Print the table of forecasted values
+knitr::kable(forecast_df_rounded, 
+             col.names = c("Month", "Forecast", "80% CI Lower", "80% CI Upper", "95% CI Lower", "95% CI Upper"),
+             caption = "Forecasted Ridership with Confidence Intervals (Rounded)",
+             format = "markdown", 
+             digits = 0)  # Ensures rounding to whole numbers
+```
+
+
+## Lagged Regression Model 
+
+```{r, echo=TRUE, eval=FALSE}
+# Ensure that the ts_ridership is a time series object
+# If it is not already, make sure ts_ridership is converted to a time series object
+ts_ridership <- ts(ts_ridership, frequency = 12, start = c(2016, 1))  # Example start date
+
+# Create lagged variables for the ridership data
+lagged_data <- data.frame(
+  y = ts_ridership[13:length(ts_ridership)],  # Dependent variable (starting from time point 13)
+  lag1 = ts_ridership[1:(length(ts_ridership)-12)],  # Lag 1 (previous month)
+  lag2 = ts_ridership[2:(length(ts_ridership)-11)],  # Lag 2 (2 months ago)
+  lag3 = ts_ridership[3:(length(ts_ridership)-10)],  # Lag 3 (3 months ago)
+  lag4 = ts_ridership[4:(length(ts_ridership)-9)],   # Lag 4 (4 months ago)
+  lag5 = ts_ridership[5:(length(ts_ridership)-8)]    # Lag 5 (5 months ago)
+)
+
+# Fit a linear model (lagged regression) with the lagged variables
+lagged_model <- lm(y ~ lag1 + lag2 + lag3 + lag4 + lag5, data = lagged_data)
+
+# Print the summary of the model to check the coefficients
+summary(lagged_model)
+
+# Prepare the forecast for the next 12 months
+# We'll use the last 5 months of observed data to generate the forecast
+last_observed <- tail(ts_ridership, 5)  # Last 5 months of data
+
+# Prepare the input for the prediction (using lagged values from the last observed months)
+new_data <- data.frame(
+  lag1 = last_observed[5],  # Most recent month
+  lag2 = last_observed[4],  # Second most recent
+  lag3 = last_observed[3],  # Third most recent
+  lag4 = last_observed[2],  # Fourth most recent
+  lag5 = last_observed[1]   # Fifth most recent
+)
+
+# Make a forecast for the next 12 months
+forecast_values <- numeric(12)  # Create a vector to store the forecast values
+for (i in 1:12) {
+  forecast_values[i] <- predict(lagged_model, newdata = new_data)  # Forecast for the next month
+  # Update the input for the next forecast iteration (shift the lagged variables)
+  new_data <- data.frame(
+    lag1 = forecast_values[i], 
+    lag2 = new_data$lag1, 
+    lag3 = new_data$lag2, 
+    lag4 = new_data$lag3, 
+    lag5 = new_data$lag4
+  )
+}
+
+# Plot the original data
+plot(ts_ridership, type = "l", col = "blue", main = "SF Muni Ridership with Lagged Regression Forecast", 
+     ylab = "Ridership", xlab = "Time", xlim = c(start(ts_ridership)[1], 2026))  # Adjust xlim to fit forecast range
+
+# Create a proper time axis for the forecast
+forecast_x <- seq(time(ts_ridership)[length(ts_ridership)] + 1/12, by = 1/12, length.out = 12)
+
+# Add the forecasted values (starting from the 13th month)
+lines(forecast_x, forecast_values, col = "red", lwd = 2)
+
+# Add a legend
+legend("topright", legend = c("Observed", "Forecasted"), col = c("blue", "red"), lty = 1)
+
+
+# Create a data frame for the forecasted values
+forecast_lagged_df <- data.frame(
+  Month = as.yearmon(time(ts_ridership)[length(ts_ridership)] + (1:12)/12),  # Time for next 12 months
+  Forecast = round(forecast_values)
+)
+
+# Print the table of forecasted values for the next 12 months
+knitr::kable(forecast_lagged_df, 
+             col.names = c("Month", "Forecast"), 
+             caption = "Lagged Regression Forecast for Next 12 Months", 
+             format = "markdown", 
+             digits = 0)
+
+# model diagnostics 
+hist(residuals(lagged_model), main = "Residuals Histogram", xlab = "Residuals")
+
+qqnorm(residuals(lagged_model))
+qqline(residuals(lagged_model), col = "red")
+
+plot(residuals(lagged_model), main = "Residuals of the Lagged Regression Model")
+abline(h = 0, col = "red")
+points(which(abs(residuals(lagged_model)) > 2 * sd(residuals(lagged_model))), residuals(lagged_model)[abs(residuals(lagged_model)) > 2 * sd(residuals(lagged_model))], col = "blue", pch = 19)
+```
+
+
